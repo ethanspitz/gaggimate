@@ -1,6 +1,6 @@
 #include "Controller.h"
 #include "ArduinoJson.h"
-#include <SPIFFS.h>
+#include "Storage.h"
 #include <ctime>
 #include <display/config.h>
 #include <display/core/constants.h>
@@ -21,12 +21,11 @@ const String LOG_TAG = F("Controller");
 void Controller::setup() {
     mode = settings.getStartupMode();
 
-    if (!SPIFFS.begin(true)) {
-        Serial.println(F("An Error has occurred while mounting SPIFFS"));
-    }
+    storage = new Storage(settings);
+    storage->begin();
 
     pluginManager = new PluginManager();
-    profileManager = new ProfileManager(SPIFFS, "/p", settings, pluginManager);
+    profileManager = new ProfileManager(storage->getFS(), "/p", settings, pluginManager);
     profileManager->setup();
 #ifndef GAGGIMATE_HEADLESS
     ui = new DefaultUI(this, pluginManager);
@@ -45,7 +44,8 @@ void Controller::setup() {
         pluginManager->registerPlugin(new MQTTPlugin());
     }
     pluginManager->registerPlugin(new WebUIPlugin());
-    pluginManager->registerPlugin(&ShotHistory);
+    shotHistoryPlugin = new ShotHistoryPlugin(storage->getFS());
+    pluginManager->registerPlugin(shotHistoryPlugin);
     pluginManager->registerPlugin(&BLEScales);
     pluginManager->registerPlugin(new LedControlPlugin());
     pluginManager->setup(this);

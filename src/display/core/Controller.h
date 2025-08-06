@@ -5,6 +5,7 @@
 #include "NimBLEComm.h"
 #include "PluginManager.h"
 #include "Settings.h"
+#include "Storage.h"
 #include <WiFi.h>
 #include <display/core/Process.h>
 #include <display/core/ProfileManager.h>
@@ -16,6 +17,8 @@ const IPAddress WIFI_AP_IP(4, 4, 4, 1); // the IP address the web server, Samsun
 const IPAddress WIFI_SUBNET_MASK(255, 255, 255, 0); // no need to change: https://avinetworks.com/glossary/subnet-mask/
 
 enum class VolumetricMeasurementSource { FLOW_ESTIMATION, BLUETOOTH };
+
+class ShotHistoryPlugin;
 
 class Controller {
   public:
@@ -123,8 +126,10 @@ class Controller {
     NimBLEClientController clientController;
     hw_timer_t *timer = nullptr;
     Settings settings;
+    Storage *storage = nullptr;
     PluginManager *pluginManager{};
     ProfileManager *profileManager{};
+    ShotHistoryPlugin *shotHistoryPlugin = nullptr;
 
     int mode = MODE_BREW;
     int currentTemp = 0;

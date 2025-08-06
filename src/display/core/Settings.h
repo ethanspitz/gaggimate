@@ -3,7 +3,7 @@
 #define SETTINGS_H
 
 #include <Arduino.h>
-#include <Preferences.h>
+#include <FS.h>
 #include <display/core/constants.h>
 #include <display/core/utils.h>
 
@@ -18,6 +18,7 @@ class Settings {
 
     void batchUpdate(const SettingsCallback &callback);
     void save(bool noDelay = false);
+    bool load();
 
     // Getters and setters
     int getTargetBrewTemp() const { return targetBrewTemp; }
@@ -135,8 +136,10 @@ class Settings {
     void setEmptyTankDistance(int empty_tank_distance);
     void setFullTankDistance(int full_tank_distance);
 
+  public:
+    void setFS(fs::FS &fs);
   private:
-    Preferences preferences;
+    fs::FS *_fs = nullptr;
     bool dirty = false;
 
     String selectedProfile;

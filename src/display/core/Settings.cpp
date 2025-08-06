@@ -1,73 +1,9 @@
 #include "Settings.h"
+#include "ArduinoJson.h"
 
 #include <utility>
 
 Settings::Settings() {
-    preferences.begin(PREFERENCES_KEY, true);
-    startupMode = preferences.getInt("sm", MODE_STANDBY);
-    targetBrewTemp = preferences.getInt("tb", 90);
-    targetSteamTemp = preferences.getInt("ts", 145);
-    targetWaterTemp = preferences.getInt("tw", 80);
-    targetDuration = preferences.getInt("td", 25000);
-    targetVolume = preferences.getInt("tv", 36);
-    targetGrindVolume = preferences.getDouble("tgv", 18.0);
-    targetGrindDuration = preferences.getInt("tgd", 25000);
-    brewDelay = preferences.getDouble("del_br", 1000.0);
-    grindDelay = preferences.getDouble("del_gd", 1000.0);
-    delayAdjust = preferences.getBool("del_ad", true);
-    temperatureOffset = preferences.getInt("to", DEFAULT_TEMPERATURE_OFFSET);
-    pressureScaling = preferences.getFloat("ps", DEFAULT_PRESSURE_SCALING);
-    pid = preferences.getString("pid", DEFAULT_PID);
-    wifiSsid = preferences.getString("ws", "");
-    wifiPassword = preferences.getString("wp", "");
-    mdnsName = preferences.getString("mn", DEFAULT_MDNS_NAME);
-    homekit = preferences.getBool("hk", false);
-    volumetricTarget = preferences.getBool("vt", false);
-    otaChannel = preferences.getString("oc", DEFAULT_OTA_CHANNEL);
-    infusePumpTime = preferences.getInt("ipt", 0);
-    infuseBloomTime = preferences.getInt("ibt", 0);
-    pressurizeTime = preferences.getInt("pt", 0);
-    savedScale = preferences.getString("ssc", "");
-    momentaryButtons = preferences.getBool("mb", false);
-    boilerFillActive = preferences.getBool("bf_a", false);
-    startupFillTime = preferences.getInt("bf_su", 5000);
-    steamFillTime = preferences.getInt("bf_st", 5000);
-    smartGrindActive = preferences.getBool("sg_a", false);
-    smartGrindIp = preferences.getString("sg_i", "");
-    smartGrindToggle = preferences.getBool("sg_t", false);
-    smartGrindMode = preferences.getInt("sg_m", smartGrindToggle ? 1 : 0);
-    homeAssistant = preferences.getBool("ha_a", false);
-    homeAssistantIP = preferences.getString("ha_i", "");
-    homeAssistantPort = preferences.getInt("ha_p", 1883);
-    homeAssistantUser = preferences.getString("ha_u", "");
-    homeAssistantPassword = preferences.getString("ha_pw", "");
-    standbyTimeout = preferences.getInt("sbt", DEFAULT_STANDBY_TIMEOUT_MS);
-    timezone = preferences.getString("tz", DEFAULT_TIMEZONE);
-    clock24hFormat = preferences.getBool("clk_24h", true);
-    selectedProfile = preferences.getString("sp", "");
-    profilesMigrated = preferences.getBool("pm", false);
-    favoritedProfiles = explode(preferences.getString("fp", ""), ',');
-    steamPumpPercentage = preferences.getFloat("spp", DEFAULT_STEAM_PUMP_PERCENTAGE);
-    historyIndex = preferences.getInt("hi", 0);
-
-    // Display settings
-    mainBrightness = preferences.getInt("main_b", 16);
-    standbyBrightness = preferences.getInt("standby_b", 8);
-    standbyBrightnessTimeout = preferences.getInt("standby_bt", 60000);
-    wifiApTimeout = preferences.getInt("wifi_apt", DEFAULT_WIFI_AP_TIMEOUT_MS);
-    themeMode = preferences.getInt("theme", 0);
-
-    // Sunrise settings
-    sunriseR = preferences.getInt("sr_r", 0);
-    sunriseG = preferences.getInt("sr_g", 0);
-    sunriseB = preferences.getInt("sr_b", 255);
-    sunriseW = preferences.getInt("sr_w", 50);
-    sunriseExtBrightness = preferences.getInt("sr_exb", 255);
-    emptyTankDistance = preferences.getInt("sr_ed", 200);
-    fullTankDistance = preferences.getInt("sr_fd", 50);
-
-    preferences.end();
-
     xTaskCreate(loopTask, "Settings::loop", configMINIMAL_STACK_SIZE * 6, this, 1, &taskHandle);
 }
 
@@ -378,71 +314,179 @@ void Settings::doSave() {
         return;
     }
     dirty = false;
-    ESP_LOGI("Settings", "Saving settings");
-    preferences.begin(PREFERENCES_KEY, false);
-    preferences.putInt("sm", startupMode);
-    preferences.putInt("tb", targetBrewTemp);
-    preferences.putInt("ts", targetSteamTemp);
-    preferences.putInt("tw", targetWaterTemp);
-    preferences.putInt("td", targetDuration);
-    preferences.putInt("tv", targetVolume);
-    preferences.putDouble("tgv", targetGrindVolume);
-    preferences.putInt("tgd", targetGrindDuration);
-    preferences.putDouble("del_br", brewDelay);
-    preferences.putDouble("del_gd", grindDelay);
-    preferences.putBool("del_ad", delayAdjust);
-    preferences.putInt("to", temperatureOffset);
-    preferences.putFloat("ps", pressureScaling);
-    preferences.putString("pid", pid);
-    preferences.putString("ws", wifiSsid);
-    preferences.putString("wp", wifiPassword);
-    preferences.putString("mn", mdnsName);
-    preferences.putBool("hk", homekit);
-    preferences.putBool("vt", volumetricTarget);
-    preferences.putString("oc", otaChannel);
-    preferences.putInt("ipt", infusePumpTime);
-    preferences.putInt("ibt", infuseBloomTime);
-    preferences.putInt("pt", pressurizeTime);
-    preferences.putString("ssc", savedScale);
-    preferences.putBool("bf_a", boilerFillActive);
-    preferences.putInt("bf_su", startupFillTime);
-    preferences.putInt("bf_st", steamFillTime);
-    preferences.putBool("sg_a", smartGrindActive);
-    preferences.putString("sg_i", smartGrindIp);
-    preferences.putBool("sg_t", smartGrindToggle);
-    preferences.putInt("sg_m", smartGrindMode);
-    preferences.putBool("ha_a", homeAssistant);
-    preferences.putString("ha_i", homeAssistantIP);
-    preferences.putInt("ha_p", homeAssistantPort);
-    preferences.putString("ha_u", homeAssistantUser);
-    preferences.putString("ha_pw", homeAssistantPassword);
-    preferences.putString("tz", timezone);
-    preferences.putBool("clk_24h", clock24hFormat);
-    preferences.putString("sp", selectedProfile);
-    preferences.putInt("sbt", standbyTimeout);
-    preferences.putBool("pm", profilesMigrated);
-    preferences.putInt("mb", momentaryButtons);
-    preferences.putString("fp", implode(favoritedProfiles, ","));
-    preferences.putFloat("spp", steamPumpPercentage);
-    preferences.putInt("hi", historyIndex);
+
+    if (_fs == nullptr) {
+        ESP_LOGE("Settings", "Filesystem not set");
+        return;
+    }
+
+    ESP_LOGI("Settings", "Saving settings to settings.json");
+    File file = _fs->open("/settings.json", "w");
+    if (!file) {
+        ESP_LOGE("Settings", "Failed to open settings.json for writing");
+        return;
+    }
+
+    JsonDocument doc;
+    doc["sm"] = startupMode;
+    doc["tb"] = targetBrewTemp;
+    doc["ts"] = targetSteamTemp;
+    doc["tw"] = targetWaterTemp;
+    doc["td"] = targetDuration;
+    doc["tv"] = targetVolume;
+    doc["tgv"] = targetGrindVolume;
+    doc["tgd"] = targetGrindDuration;
+    doc["del_br"] = brewDelay;
+    doc["del_gd"] = grindDelay;
+    doc["del_ad"] = delayAdjust;
+    doc["to"] = temperatureOffset;
+    doc["ps"] = pressureScaling;
+    doc["pid"] = pid;
+    doc["ws"] = wifiSsid;
+    doc["wp"] = wifiPassword;
+    doc["mn"] = mdnsName;
+    doc["hk"] = homekit;
+    doc["vt"] = volumetricTarget;
+    doc["oc"] = otaChannel;
+    doc["ipt"] = infusePumpTime;
+    doc["ibt"] = infuseBloomTime;
+    doc["pt"] = pressurizeTime;
+    doc["ssc"] = savedScale;
+    doc["bf_a"] = boilerFillActive;
+    doc["bf_su"] = startupFillTime;
+    doc["bf_st"] = steamFillTime;
+    doc["sg_a"] = smartGrindActive;
+    doc["sg_i"] = smartGrindIp;
+    doc["sg_t"] = smartGrindToggle;
+    doc["sg_m"] = smartGrindMode;
+    doc["ha_a"] = homeAssistant;
+    doc["ha_i"] = homeAssistantIP;
+    doc["ha_p"] = homeAssistantPort;
+    doc["ha_u"] = homeAssistantUser;
+    doc["ha_pw"] = homeAssistantPassword;
+    doc["tz"] = timezone;
+    doc["clk_24h"] = clock24hFormat;
+    doc["sp"] = selectedProfile;
+    doc["sbt"] = standbyTimeout;
+    doc["pm"] = profilesMigrated;
+    doc["mb"] = momentaryButtons;
+    JsonArray fp = doc["fp"].to<JsonArray>();
+    for (const auto& profile : favoritedProfiles) {
+        fp.add(profile);
+    }
+    doc["spp"] = steamPumpPercentage;
+    doc["hi"] = historyIndex;
 
     // Display settings
-    preferences.putInt("main_b", mainBrightness);
-    preferences.putInt("standby_b", standbyBrightness);
-    preferences.putInt("standby_bt", standbyBrightnessTimeout);
-    preferences.putInt("wifi_apt", wifiApTimeout);
-    preferences.putInt("theme", themeMode);
+    doc["main_b"] = mainBrightness;
+    doc["standby_b"] = standbyBrightness;
+    doc["standby_bt"] = standbyBrightnessTimeout;
+    doc["wifi_apt"] = wifiApTimeout;
+    doc["theme"] = themeMode;
 
     // Sunrise Settings
-    preferences.putInt("sr_r", sunriseR);
-    preferences.putInt("sr_g", sunriseG);
-    preferences.putInt("sr_b", sunriseB);
-    preferences.putInt("sr_w", sunriseW);
-    preferences.putInt("sr_exb", sunriseExtBrightness);
-    preferences.putInt("sr_ed", emptyTankDistance);
-    preferences.putInt("sr_fd", fullTankDistance);
+    doc["sr_r"] = sunriseR;
+    doc["sr_g"] = sunriseG;
+    doc["sr_b"] = sunriseB;
+    doc["sr_w"] = sunriseW;
+    doc["sr_exb"] = sunriseExtBrightness;
+    doc["sr_ed"] = emptyTankDistance;
+    doc["sr_fd"] = fullTankDistance;
 
-    preferences.end();
+    if (serializeJson(doc, file) == 0) {
+        ESP_LOGE("Settings", "Failed to write to settings.json");
+    }
+    file.close();
+}
+
+bool Settings::load() {
+    if (_fs == nullptr) {
+        ESP_LOGE("Settings", "Filesystem not set");
+        return false;
+    }
+
+    ESP_LOGI("Settings", "Loading settings from settings.json");
+    File file = _fs->open("/settings.json", "r");
+    if (!file) {
+        ESP_LOGE("Settings", "Failed to open settings.json for reading");
+        return false;
+    }
+
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, file);
+    if (error) {
+        ESP_LOGE("Settings", "Failed to parse settings.json: %s", error.c_str());
+        file.close();
+        return false;
+    }
+
+    startupMode = doc["sm"] | MODE_STANDBY;
+    targetBrewTemp = doc["tb"] | 90;
+    targetSteamTemp = doc["ts"] | 145;
+    targetWaterTemp = doc["tw"] | 80;
+    targetDuration = doc["td"] | 25000;
+    targetVolume = doc["tv"] | 36;
+    targetGrindVolume = doc["tgv"] | 18.0;
+    targetGrindDuration = doc["tgd"] | 25000;
+    brewDelay = doc["del_br"] | 1000.0;
+    grindDelay = doc["del_gd"] | 1000.0;
+    delayAdjust = doc["del_ad"] | true;
+    temperatureOffset = doc["to"] | DEFAULT_TEMPERATURE_OFFSET;
+    pressureScaling = doc["ps"] | DEFAULT_PRESSURE_SCALING;
+    pid = doc["pid"] | DEFAULT_PID;
+    wifiSsid = doc["ws"] | "";
+    wifiPassword = doc["wp"] | "";
+    mdnsName = doc["mn"] | DEFAULT_MDNS_NAME;
+    homekit = doc["hk"] | false;
+    volumetricTarget = doc["vt"] | false;
+    otaChannel = doc["oc"] | DEFAULT_OTA_CHANNEL;
+    infusePumpTime = doc["ipt"] | 0;
+    infuseBloomTime = doc["ibt"] | 0;
+    pressurizeTime = doc["pt"] | 0;
+    savedScale = doc["ssc"] | "";
+    momentaryButtons = doc["mb"] | false;
+    boilerFillActive = doc["bf_a"] | false;
+    startupFillTime = doc["bf_su"] | 5000;
+    steamFillTime = doc["bf_st"] | 5000;
+    smartGrindActive = doc["sg_a"] | false;
+    smartGrindIp = doc["sg_i"] | "";
+    smartGrindToggle = doc["sg_t"] | false;
+    smartGrindMode = doc["sg_m"] | (smartGrindToggle ? 1 : 0);
+    homeAssistant = doc["ha_a"] | false;
+    homeAssistantIP = doc["ha_i"] | "";
+    homeAssistantPort = doc["ha_p"] | 1883;
+    homeAssistantUser = doc["ha_u"] | "";
+    homeAssistantPassword = doc["ha_pw"] | "";
+    standbyTimeout = doc["sbt"] | DEFAULT_STANDBY_TIMEOUT_MS;
+    timezone = doc["tz"] | DEFAULT_TIMEZONE;
+    clock24hFormat = doc["clk_24h"] | true;
+    selectedProfile = doc["sp"] | "";
+    profilesMigrated = doc["pm"] | false;
+    favoritedProfiles.clear();
+    for (JsonVariant v : doc["fp"].as<JsonArray>()) {
+        favoritedProfiles.push_back(v.as<String>());
+    }
+    steamPumpPercentage = doc["spp"] | DEFAULT_STEAM_PUMP_PERCENTAGE;
+    historyIndex = doc["hi"] | 0;
+
+    // Display settings
+    mainBrightness = doc["main_b"] | 16;
+    standbyBrightness = doc["standby_b"] | 8;
+    standbyBrightnessTimeout = doc["standby_bt"] | 60000;
+    wifiApTimeout = doc["wifi_apt"] | DEFAULT_WIFI_AP_TIMEOUT_MS;
+    themeMode = doc["theme"] | 0;
+
+    // Sunrise Settings
+    sunriseR = doc["sr_r"] | 0;
+    sunriseG = doc["sr_g"] | 0;
+    sunriseB = doc["sr_b"] | 255;
+    sunriseW = doc["sr_w"] | 50;
+    sunriseExtBrightness = doc["sr_exb"] | 255;
+    emptyTankDistance = doc["sr_ed"] | 200;
+    fullTankDistance = doc["sr_fd"] | 50;
+
+    file.close();
+    return true;
 }
 
 void Settings::loopTask(void *arg) {
@@ -451,4 +495,8 @@ void Settings::loopTask(void *arg) {
         settings->doSave();
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
+}
+
+void Settings::setFS(fs::FS &fs) {
+    _fs = &fs;
 }

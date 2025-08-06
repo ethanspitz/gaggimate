@@ -1,11 +1,10 @@
 #include "ShotHistoryPlugin.h"
 
-#include <SPIFFS.h>
 #include <display/core/Controller.h>
 #include <display/core/ProfileManager.h>
 #include <display/core/utils.h>
 
-ShotHistoryPlugin ShotHistory;
+ShotHistoryPlugin::ShotHistoryPlugin(fs::FS &fs) : _fs(fs) {}
 
 void ShotHistoryPlugin::setup(Controller *c, PluginManager *pm) {
     controller = c;
@@ -33,10 +32,10 @@ void ShotHistoryPlugin::record() {
     static File file;
     if (recording && controller->getMode() == MODE_BREW) {
         if (!isFileOpen) {
-            if (!SPIFFS.exists("/h")) {
-                SPIFFS.mkdir("/h");
+            if (!_fs.exists("/h")) {
+                _fs.mkdir("/h");
             }
-            file = SPIFFS.open("/h/" + currentId + ".dat", FILE_APPEND);
+            file = _fs.open("/h/" + currentId + ".dat", FILE_APPEND);
             if (file) {
                 isFileOpen = true;
             }
@@ -95,7 +94,7 @@ void ShotHistoryPlugin::endRecording() {
     recording = false;
     unsigned long duration = millis() - shotStart;
     if (duration <= 5000) {
-        SPIFFS.remove("/h/" + currentId + ".dat");
+        _fs.remove("/h/" + currentId + ".dat");
     } else {
         controller->getSettings().setHistoryIndex(controller->getSettings().getHistoryIndex() + 1);
         cleanupHistory();
@@ -103,7 +102,7 @@ void ShotHistoryPlugin::endRecording() {
 }
 
 void ShotHistoryPlugin::cleanupHistory() {
-    File directory = SPIFFS.open("/h");
+    File directory = _fs.open("/h");
     std::vector<String> entries;
     String filename = directory.getNextFileName();
     while (filename != "") {
@@ -114,7 +113,7 @@ void ShotHistoryPlugin::cleanupHistory() {
     if (entries.size() > MAX_HISTORY_ENTRIES) {
         for (unsigned int i = 0; i < entries.size() - MAX_HISTORY_ENTRIES; i++) {
             String name = entries[i];
-            SPIFFS.remove(name);
+            _fs.remove(name);
         }
     }
 }
@@ -126,7 +125,7 @@ void ShotHistoryPlugin::handleRequest(JsonDocument &request, JsonDocument &respo
 
     if (type == "req:history:list") {
         JsonArray arr = response["history"].to<JsonArray>();
-        File root = SPIFFS.open("/h");
+        File root = _fs.open("/h");
         if (root && root.isDirectory()) {
             File file = root.openNextFile();
             while (file) {
@@ -143,7 +142,7 @@ void ShotHistoryPlugin::handleRequest(JsonDocument &request, JsonDocument &respo
         }
     } else if (type == "req:history:get") {
         String id = request["id"].as<String>();
-        File file = SPIFFS.open("/h/" + id + ".dat", "r");
+        File file = _fs.open("/h/" + id + ".dat", "r");
         if (file) {
             String data = file.readString();
             response["history"] = data;
@@ -153,7 +152,7 @@ void ShotHistoryPlugin::handleRequest(JsonDocument &request, JsonDocument &respo
         }
     } else if (type == "req:history:delete") {
         String id = request["id"].as<String>();
-        SPIFFS.remove("/h/" + id + ".dat");
+        _fs.remove("/h/" + id + ".dat");
         response["msg"] = "Ok";
     }
 }

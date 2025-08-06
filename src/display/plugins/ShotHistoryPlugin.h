@@ -3,7 +3,7 @@
 
 #include "../core/Plugin.h"
 #include <ArduinoJson.h>
-#include <SPIFFS.h>
+#include <FS.h>
 #include <display/core/utils.h>
 
 constexpr size_t SHOT_HISTORY_INTERVAL = 100;
@@ -11,7 +11,7 @@ constexpr size_t MAX_HISTORY_ENTRIES = 3;
 
 class ShotHistoryPlugin : public Plugin {
   public:
-    ShotHistoryPlugin() = default;
+    ShotHistoryPlugin(fs::FS &fs);
 
     void setup(Controller *controller, PluginManager *pluginManager) override;
     void loop() override {};
@@ -47,6 +47,7 @@ class ShotHistoryPlugin : public Plugin {
     void endRecording();
     void cleanupHistory();
 
+    fs::FS &_fs;
     Controller *controller = nullptr;
     PluginManager *pluginManager = nullptr;
     String currentId = "";
@@ -65,7 +66,5 @@ class ShotHistoryPlugin : public Plugin {
     xTaskHandle taskHandle;
     static void loopTask(void *arg);
 };
-
-extern ShotHistoryPlugin ShotHistory;
 
 #endif // SHOTHISTORYPLUGIN_H
