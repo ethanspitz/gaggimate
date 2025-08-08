@@ -1,7 +1,7 @@
 #include "ProfileManager.h"
 #include <ArduinoJson.h>
 
-ProfileManager::ProfileManager(fs::FS &fs, char *dir, Settings &settings, PluginManager *plugin_manager)
+ProfileManager::ProfileManager(fs::FS &fs, const char *dir, Settings &settings, PluginManager *plugin_manager)
     : _plugin_manager(plugin_manager), _settings(settings), _fs(fs), _dir(dir) {}
 
 void ProfileManager::setup() {

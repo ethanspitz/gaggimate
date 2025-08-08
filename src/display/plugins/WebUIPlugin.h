@@ -25,7 +25,7 @@ class ProfileManager;
 
 class WebUIPlugin : public Plugin {
   public:
-    WebUIPlugin();
+    WebUIPlugin(ShotHistoryPlugin *shotHistoryPlugin);
     void setup(Controller *controller, PluginManager *pluginManager) override;
     void loop() override;
 
@@ -57,6 +57,7 @@ class WebUIPlugin : public Plugin {
     PluginManager *pluginManager = nullptr;
     DNSServer *dnsServer = nullptr;
     ProfileManager *profileManager = nullptr;
+    ShotHistoryPlugin *_shotHistoryPlugin = nullptr;
 
     long lastUpdateCheck = 0;
     long lastStatus = 0;

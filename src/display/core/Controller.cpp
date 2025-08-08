@@ -43,8 +43,8 @@ void Controller::setup() {
     if (settings.isHomeAssistant()) {
         pluginManager->registerPlugin(new MQTTPlugin());
     }
-    pluginManager->registerPlugin(new WebUIPlugin());
     shotHistoryPlugin = new ShotHistoryPlugin(storage->getFS());
+    pluginManager->registerPlugin(new WebUIPlugin(shotHistoryPlugin));
     pluginManager->registerPlugin(shotHistoryPlugin);
     pluginManager->registerPlugin(&BLEScales);
     pluginManager->registerPlugin(new LedControlPlugin());

@@ -9,7 +9,8 @@
 #include "ShotHistoryPlugin.h"
 #include <vector>
 
-WebUIPlugin::WebUIPlugin() : server(80), ws("/ws") {}
+WebUIPlugin::WebUIPlugin(ShotHistoryPlugin *shotHistoryPlugin)
+    : _shotHistoryPlugin(shotHistoryPlugin), server(80), ws("/ws") {}
 
 void WebUIPlugin::setup(Controller *_controller, PluginManager *_pluginManager) {
     this->controller = _controller;
@@ -78,7 +79,7 @@ void WebUIPlugin::loop() {
             process = controller->getLastProcess();
         }
         if (process != nullptr) {
-            JsonObject pObj = doc.createNestedObject("process");
+            JsonObject pObj = doc["process"].to<JsonObject>();
             pObj["a"] = controller->isActive() ? 1 : 0;
             if (process->getType() == MODE_BREW) {
                 auto *brew = static_cast<BrewProcess *>(process);
@@ -189,7 +190,7 @@ void WebUIPlugin::setupServer() {
                                 }
                             } else if (msgType.startsWith("req:history")) {
                                 JsonDocument resp;
-                                ShotHistory.handleRequest(doc, resp);
+                                _shotHistoryPlugin->handleRequest(doc, resp);
                                 String msg;
                                 serializeJson(resp, msg);
                                 ws.text(client->id(), msg);

@@ -45,7 +45,7 @@ void ShotHistoryPlugin::record() {
             headerWritten = true;
         }
         ShotSample s{millis() - shotStart,
-                     controller->getTargetTemp(),
+                     static_cast<float>(controller->getTargetTemp()),
                      currentTemperature,
                      controller->getTargetPressure(),
                      controller->getCurrentPressure(),
@@ -130,7 +130,7 @@ void ShotHistoryPlugin::handleRequest(JsonDocument &request, JsonDocument &respo
             File file = root.openNextFile();
             while (file) {
                 if (String(file.name()).endsWith(".dat")) {
-                    JsonObject o = arr.createNestedObject();
+                    JsonObject o = arr.add<JsonObject>();
                     String name = String(file.name());
                     int start = name.lastIndexOf('/') + 1;
                     int end = name.lastIndexOf('.');
