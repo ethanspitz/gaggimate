@@ -19,10 +19,10 @@
 const String LOG_TAG = F("Controller");
 
 void Controller::setup() {
-    mode = settings.getStartupMode();
-
     storage = new Storage(settings);
     storage->begin();
+
+    mode = settings.getStartupMode();
 
     pluginManager = new PluginManager();
     profileManager = new ProfileManager(storage->getFS(), "/p", settings, pluginManager);
