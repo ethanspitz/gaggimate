@@ -72,7 +72,7 @@ bool LilyGo_RGBPanel::begin(LilyGo_RGBPanel_Color_Order order) {
 void LilyGo_RGBPanel::setupSDPins() {
     extension.pinMode(sdmmc_cs, OUTPUT);
     extension.digitalWrite(sdmmc_cs, HIGH);
-    SD_MMC.setPins(BOARD_SDMMC_CLK, BOARD_SDMMC_CMD, BOARD_SDMMC_DAT);
+    SD_MMC.setPins(BOARD_SDMMC_SCK, BOARD_SDMMC_CMD, BOARD_SDMMC_DAT);
 }
 
 void LilyGo_RGBPanel::unsetupSDPins() {
