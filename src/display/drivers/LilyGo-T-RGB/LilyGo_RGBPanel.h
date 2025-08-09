@@ -57,9 +57,9 @@ class LilyGo_RGBPanel : public Display {
 
     bool begin(LilyGo_RGBPanel_Color_Order order = LILYGO_T_RGB_ORDER_RGB);
 
-    bool installSD();
+    void setupSDPins();
 
-    void uninstallSD();
+    void unsetupSDPins();
 
     void setBrightness(uint8_t level);
 

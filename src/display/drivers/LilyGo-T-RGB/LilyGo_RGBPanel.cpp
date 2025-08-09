@@ -64,36 +64,18 @@ bool LilyGo_RGBPanel::begin(LilyGo_RGBPanel_Color_Order order) {
 
     getModel();
 
+    setupSDPins();
+
     return true;
 }
 
-bool LilyGo_RGBPanel::installSD() {
+void LilyGo_RGBPanel::setupSDPins() {
     extension.pinMode(sdmmc_cs, OUTPUT);
     extension.digitalWrite(sdmmc_cs, HIGH);
-
-    SD_MMC.setPins(BOARD_SDMMC_SCK, BOARD_SDMMC_CMD, BOARD_SDMMC_DAT);
-
-    if (SD_MMC.begin("/sdcard", true, false)) {
-        uint8_t cardType = SD_MMC.cardType();
-        if (cardType != CARD_NONE) {
-            Serial.print(F("SD Card Type: "));
-            if (cardType == CARD_MMC)
-                Serial.println(F("MMC"));
-            else if (cardType == CARD_SD)
-                Serial.println(F("SDSC"));
-            else if (cardType == CARD_SDHC)
-                Serial.println(F("SDHC"));
-            else
-                Serial.println(F("UNKNOWN"));
-            uint64_t cardSize = SD_MMC.cardSize() / (1024 * 1024);
-            Serial.printf("SD Card Size: %lluMB\n", cardSize);
-        }
-        return true;
-    }
-    return false;
+    SD_MMC.setPins(BOARD_SDMMC_CLK, BOARD_SDMMC_CMD, BOARD_SDMMC_DAT);
 }
 
-void LilyGo_RGBPanel::uninstallSD() {
+void LilyGo_RGBPanel::unsetupSDPins() {
     SD_MMC.end();
     extension.digitalWrite(sdmmc_cs, LOW);
     extension.pinMode(sdmmc_cs, INPUT);
@@ -231,10 +213,7 @@ void LilyGo_RGBPanel::sleep() {
 
     Serial.end();
 
-    // If the SD card is initialized, it needs to be unmounted.
-    if (SD_MMC.cardSize()) {
-        SD_MMC.end();
-    }
+    unsetupSDPins();
 
     // Enter sleep
     esp_deep_sleep_start();
