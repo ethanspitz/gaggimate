@@ -76,7 +76,11 @@ DefaultUI::DefaultUI(Controller *controller, PluginManager *pluginManager)
     profileManager = controller->getProfileManager();
 }
 
-void DefaultUI::init() {
+void DefaultUI::init_hw() {
+    setupPanel();
+}
+
+void DefaultUI::init_ui() {
     auto triggerRender = [this](Event const &) { rerender = true; };
     pluginManager->on("boiler:currentTemperature:change", [=](Event const &event) {
         float newTemp = event.getFloat("value");

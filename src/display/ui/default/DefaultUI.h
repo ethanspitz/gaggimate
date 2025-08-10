@@ -24,7 +24,8 @@ class DefaultUI {
     DefaultUI(Controller *controller, PluginManager *pluginManager);
 
     // Default work methods
-    void init();
+    void init_hw();
+    void init_ui();
     void loop();
 
     // Interface methods

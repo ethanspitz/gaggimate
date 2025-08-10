@@ -19,29 +19,27 @@
 const String LOG_TAG = F("Controller");
 
 void Controller::setup() {
-    // 1. Create objects that don't have complex dependencies
     storage = new Storage(settings);
     pluginManager = new PluginManager();
-
-// 2. Initialize the UI and display driver, which sets up the SD card pins
 #ifndef GAGGIMATE_HEADLESS
     ui = new DefaultUI(this, pluginManager);
-    ui->init();
+    ui->init_hw();
 #else
     this->onScreenReady();
 #endif
 
-    // 3. Now that pins are set, initialize the storage (mount SD card, load settings)
     storage->begin();
 
-    // 4. Set the startup mode from the now-loaded settings
     mode = settings.getStartupMode();
 
-    // 5. Create objects that depend on the initialized storage and settings
     profileManager = new ProfileManager(storage->getFS(), "/p", settings, pluginManager);
     profileManager->setup();
 
-    // 6. Register plugins
+#ifndef GAGGIMATE_HEADLESS
+    ui->init_ui();
+#endif
+
+    // Register plugins
     if (settings.isHomekit())
         pluginManager->registerPlugin(new HomekitPlugin(settings.getWifiSsid(), settings.getWifiPassword()));
     else
