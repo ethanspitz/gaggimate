@@ -72,9 +72,7 @@ void DefaultUI::adjustHeatingIndicator(lv_obj_t *dials) {
 }
 
 DefaultUI::DefaultUI(Controller *controller, PluginManager *pluginManager)
-    : controller(controller), pluginManager(pluginManager) {
-    profileManager = controller->getProfileManager();
-}
+    : controller(controller), pluginManager(pluginManager) {}
 
 void DefaultUI::init_hw() {
     setupPanel();
@@ -236,11 +234,11 @@ void DefaultUI::changeScreen(lv_obj_t **screen, void (*target_init)()) {
 }
 
 void DefaultUI::onProfileSwitch() {
-    favoritedProfiles = profileManager->getFavoritedProfiles();
+    favoritedProfiles = controller->getProfileManager()->getFavoritedProfiles();
     currentProfileIdx = 0;
     currentProfileId = favoritedProfiles[currentProfileIdx];
     currentProfileChoice = Profile{};
-    profileManager->loadProfile(currentProfileId, currentProfileChoice);
+    controller->getProfileManager()->loadProfile(currentProfileId, currentProfileChoice);
     changeScreen(&ui_ProfileScreen, ui_ProfileScreen_screen_init);
 }
 
@@ -249,7 +247,7 @@ void DefaultUI::onNextProfile() {
         currentProfileIdx++;
         currentProfileId = favoritedProfiles.at(currentProfileIdx);
         currentProfileChoice = Profile{};
-        profileManager->loadProfile(currentProfileId, currentProfileChoice);
+        controller->getProfileManager()->loadProfile(currentProfileId, currentProfileChoice);
     }
 }
 
@@ -258,12 +256,12 @@ void DefaultUI::onPreviousProfile() {
         currentProfileIdx--;
         currentProfileId = favoritedProfiles.at(currentProfileIdx);
         currentProfileChoice = Profile{};
-        profileManager->loadProfile(currentProfileId, currentProfileChoice);
+        controller->getProfileManager()->loadProfile(currentProfileId, currentProfileChoice);
     }
 }
 
 void DefaultUI::onProfileSelect() {
-    profileManager->selectProfile(currentProfileId);
+    controller->getProfileManager()->selectProfile(currentProfileId);
     changeScreen(&ui_BrewScreen, ui_BrewScreen_screen_init);
 }
 
@@ -305,7 +303,7 @@ void DefaultUI::setupState() {
     pressureAvailable = controller->getSystemInfo().capabilities.pressure ? 1 : 0;
     pressureScaling = std::ceil(settings.getPressureScaling());
     selectedProfileId = settings.getSelectedProfile();
-    profileManager->loadSelectedProfile(selectedProfile);
+    controller->getProfileManager()->loadSelectedProfile(selectedProfile);
 }
 
 void DefaultUI::setupReactive() {

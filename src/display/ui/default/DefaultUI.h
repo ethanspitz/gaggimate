@@ -73,7 +73,6 @@ class DefaultUI {
     Driver *panelDriver = nullptr;
     Controller *controller;
     PluginManager *pluginManager;
-    ProfileManager *profileManager;
 
     // Screen state
     String selectedProfileId = "";
