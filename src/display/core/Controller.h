@@ -131,7 +131,7 @@ class Controller {
     ProfileManager *profileManager{};
     ShotHistoryPlugin *shotHistoryPlugin = nullptr;
 
-    int mode = MODE_BREW;
+    int mode = MODE_STANDBY;
     int currentTemp = 0;
     float pressure = 0.0f;
     float targetPressure = 0.0f;
